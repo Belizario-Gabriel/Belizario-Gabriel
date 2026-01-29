@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <title>Simulador Liga Master</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <main class="container">
+    <header>
+      <h1>Simulador Liga Master</h1>
+      <p>Simulação offline com foco em gestão e realismo.</p>
+    </header>
+
+    <section class="card">
+      <h2>Simular partida</h2>
+      <form method="post" action="{{ url_for('main.simulate') }}">
+        <label>
+          Mandante
+          <select name="home_id" required>
+            {% for club in clubs %}
+              <option value="{{ club.id }}">{{ club.name }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>
+          Visitante
+          <select name="away_id" required>
+            {% for club in clubs %}
+              <option value="{{ club.id }}">{{ club.name }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <button type="submit">Simular agora</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Últimos resultados</h2>
+      {% if matches %}
+        <ul class="results">
+          {% for match in matches %}
+            <li>
+              <strong>{{ match.home_name }} {{ match.home_goals }} x {{ match.away_goals }} {{ match.away_name }}</strong>
+              <span>{{ match.summary }}</span>
+              <small>{{ match.created_at }}</small>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p>Nenhuma partida simulada ainda.</p>
+      {% endif %}
+    </section>
+  </main>
+</body>
+</html>

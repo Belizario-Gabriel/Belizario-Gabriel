@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <title>Resultado</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <main class="container">
+    <header>
+      <h1>{{ home_team.name }} {{ result.home_goals }} x {{ result.away_goals }} {{ away_team.name }}</h1>
+      <p>{{ result.summary }}</p>
+    </header>
+
+    <section class="card">
+      <h2>Momentos da partida</h2>
+      <ul class="moments">
+        {% for moment in result.moments %}
+          <li>{{ moment }}</li>
+        {% endfor %}
+      </ul>
+    </section>
+
+    <a class="link" href="{{ url_for('main.index') }}">Voltar</a>
+  </main>
+</body>
+</html>
