@@ -1,0 +1,16 @@
+{
+  "name": "entertainment-tycoon-monorepo",
+  "private": true,
+  "workspaces": [
+    "apps/api",
+    "apps/web"
+  ],
+  "scripts": {
+    "dev": "npm --workspace apps/web run dev",
+    "api": "npm --workspace apps/api run dev",
+    "build": "npm run -ws build",
+    "test": "npm run -ws test",
+    "db:migrate": "npm --workspace apps/api run db:migrate",
+    "db:seed": "npm --workspace apps/api run db:seed"
+  }
+}

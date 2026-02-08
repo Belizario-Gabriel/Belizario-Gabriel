@@ -1,0 +1,237 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = env("DATABASE_PROVIDER")
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  saves        Save[]
+}
+
+model Save {
+  id              String               @id @default(cuid())
+  name            String
+  scenario        String
+  difficulty      String
+  seed            Int
+  currentMonth    Int                  @default(1)
+  currentCash     Float                @default(0)
+  userId          String
+  user            User                 @relation(fields: [userId], references: [id])
+  snapshots       GameState[]
+  competitors     Competitor[]
+  productions     ProductionInstance[]
+  employees       Employee[]
+  campaigns       MarketingCampaign[]
+  transactions    Transaction[]
+  events          EventLog[]
+  techQueue       TechQueue[]
+  ownedIpAssets   IpAsset[]            @relation("OwnedIpAssets")
+  regionExpansion SaveRegionExpansion[]
+  crises          Crisis[]
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+}
+
+model GameState {
+  id             String   @id @default(cuid())
+  saveId         String
+  month          Int
+  cash           Float
+  revenue        Float
+  profit         Float
+  valuation      Float
+  reputation     Float
+  quality        Float
+  hype           Float
+  subscribers    Int
+  marketShare    Float
+  churn          Float
+  nps            Float
+  libraryValue   Float
+  snapshotJson   Json
+  createdAt      DateTime @default(now())
+  save           Save     @relation(fields: [saveId], references: [id], onDelete: Cascade)
+
+  @@unique([saveId, month])
+}
+
+model Region {
+  id             String   @id @default(cuid())
+  name           String   @unique
+  demandIndex    Float
+  taxRate        Float
+  operatingCost  Float
+  regulationRisk Float
+  createdAt      DateTime @default(now())
+  expansions     SaveRegionExpansion[]
+}
+
+model SaveRegionExpansion {
+  id              String   @id @default(cuid())
+  saveId          String
+  regionId        String
+  marketPenetration Float @default(0.05)
+  active          Boolean  @default(true)
+  save            Save     @relation(fields: [saveId], references: [id], onDelete: Cascade)
+  region          Region   @relation(fields: [regionId], references: [id])
+
+  @@unique([saveId, regionId])
+}
+
+model Competitor {
+  id             String   @id @default(cuid())
+  saveId         String
+  name           String
+  strategy       String
+  price          Float
+  quality        Float
+  marketingPower Float
+  launchesPerYear Int
+  marketShare    Float
+  save           Save @relation(fields: [saveId], references: [id], onDelete: Cascade)
+}
+
+model Production {
+  id              String   @id @default(cuid())
+  title           String
+  kind            String
+  baseDuration    Int
+  baseRisk        Float
+  genre           String
+  audience        String
+  baseQuality     Float
+  createdAt       DateTime @default(now())
+  instances       ProductionInstance[]
+}
+
+model ProductionInstance {
+  id              String   @id @default(cuid())
+  saveId          String
+  productionId    String
+  stage           String
+  budget          Float
+  durationMonths  Int
+  monthsProgress  Int      @default(0)
+  risk            Float
+  targetRegions   String
+  launchedMonth   Int?
+  performance     Float?
+  save            Save       @relation(fields: [saveId], references: [id], onDelete: Cascade)
+  production      Production @relation(fields: [productionId], references: [id])
+}
+
+model Employee {
+  id             String @id @default(cuid())
+  saveId         String
+  name           String
+  department     String
+  salary         Float
+  skill          Float
+  productivity   Float
+  morale         Float
+  save           Save @relation(fields: [saveId], references: [id], onDelete: Cascade)
+}
+
+model MarketingCampaign {
+  id            String @id @default(cuid())
+  saveId        String
+  channel       String
+  budget        Float
+  target        String
+  roi           Float?
+  active        Boolean @default(true)
+  startedMonth  Int
+  save          Save @relation(fields: [saveId], references: [id], onDelete: Cascade)
+}
+
+model Transaction {
+  id          String   @id @default(cuid())
+  saveId      String
+  month       Int
+  category    String
+  amount      Float
+  description String
+  createdAt   DateTime @default(now())
+  save        Save     @relation(fields: [saveId], references: [id], onDelete: Cascade)
+}
+
+model EventLog {
+  id        String   @id @default(cuid())
+  saveId    String
+  month     Int
+  type      String
+  severity  Int
+  message   String
+  metadata  Json?
+  createdAt DateTime @default(now())
+  save      Save     @relation(fields: [saveId], references: [id], onDelete: Cascade)
+}
+
+model TechTree {
+  id            String @id @default(cuid())
+  key           String @unique
+  name          String
+  description   String
+  cost          Float
+  duration      Int
+  requirement   String?
+  qualityBonus  Float @default(0)
+  costReduction Float @default(0)
+  churnReduction Float @default(0)
+  conversionBonus Float @default(0)
+}
+
+model TechQueue {
+  id             String @id @default(cuid())
+  saveId         String
+  techId         String
+  status         String @default("queued")
+  startedMonth   Int
+  completesMonth Int
+  save           Save     @relation(fields: [saveId], references: [id], onDelete: Cascade)
+  tech           TechTree @relation(fields: [techId], references: [id])
+}
+
+model IpAsset {
+  id            String   @id @default(cuid())
+  name          String
+  kind          String
+  baseValue     Float
+  franchisePotential Float
+  ownerSaveId   String?
+  owner         Save?    @relation("OwnedIpAssets", fields: [ownerSaveId], references: [id])
+  auctions      Auction[]
+}
+
+model Auction {
+  id             String @id @default(cuid())
+  month          Int
+  ipAssetId      String
+  basePrice      Float
+  highestBid     Float
+  highestBidderSaveId String?
+  status         String @default("open")
+  ipAsset        IpAsset @relation(fields: [ipAssetId], references: [id])
+}
+
+model Crisis {
+  id            String @id @default(cuid())
+  saveId        String
+  type          String
+  severity      Int
+  duration      Int
+  remaining     Int
+  status        String @default("active")
+  impactCash    Float
+  impactReputation Float
+  startedMonth  Int
+  save          Save @relation(fields: [saveId], references: [id], onDelete: Cascade)
+}
